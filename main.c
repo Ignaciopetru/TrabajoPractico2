@@ -14,6 +14,8 @@ char ** parserCiudades(const char* fileName){
     int i=0;
 
     while(fgets(buff, 80, fp)) {
+       
+       
         char temp[80] = "";
         int bandera = 0, k = 0, j = 0;
         while((buff[j]!=' '||buff[j+1]!=' ')&&(buff[j]!='\n')){
@@ -28,7 +30,7 @@ char ** parserCiudades(const char* fileName){
             j++;
         }
             printf("%i %s\n",i,temp);
-        arrayCiudades =  (char **) realloc(arrayCiudades, sizeof(char*));
+         realloc(arrayCiudades, (sizeof(char*) * i + 1));
         arrayCiudades[i] = (char *)calloc(80,sizeof(char));
 
         i++;
