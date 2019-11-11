@@ -5,9 +5,9 @@
 
 
 char ** parserCiudades(const char* fileName){
-    /*char** arrayCiudades;
-    arrayCiudades = calloc(1, sizeof(char*));
-    *arrayCiudades = calloc(255, sizeof(char));*/
+    char** arrayCiudades;
+    arrayCiudades = (char**)calloc(1, sizeof(char*));
+    *arrayCiudades = (char*)calloc(255, sizeof(char));
     FILE *fp;
     char buff[80];
     fp = fopen(fileName, "r");
@@ -24,13 +24,12 @@ char ** parserCiudades(const char* fileName){
             if(buff[j]==',')
                 bandera = 1;
             
-            
             temp[k]='\0';
             j++;
         }
             printf("%i %s\n",i,temp);
-        //arrayCiudades = realloc(arrayCiudades, sizeof(char*));
-        // arrayCiudades[i] = calloc(80,sizeof(char));
+        arrayCiudades =  (char **) realloc(arrayCiudades, sizeof(char*));
+        arrayCiudades[i] = (char *)calloc(80,sizeof(char));
 
         i++;
     }
