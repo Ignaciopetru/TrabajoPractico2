@@ -31,11 +31,12 @@ char **parserCiudades(const char *fileName)
             temp[k] = '\0';
             j++;
         }
-        printf("%i %s\n",i,temp);
+        strcpy(*arrayCiudades+i, temp);
         arrayCiudades = (char**)realloc(arrayCiudades, (sizeof(char*) * i + 1));
-        arrayCiudades[i] = (char *)calloc(80,sizeof(char));
+        arrayCiudades[i] = (char *)calloc(100,sizeof(char));
 
         i++;
+        printf("%i %s\n", i,*arrayCiudades+i);
     }
     fclose(fp);
     //return arrayCiudades;
@@ -43,5 +44,6 @@ char **parserCiudades(const char *fileName)
 
 int main()
 {
+    //printf("%s", *parserCiudades("codigoLocalidades.txt")[0]);
     parserCiudades("codigoLocalidades.txt");
 }
