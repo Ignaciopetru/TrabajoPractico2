@@ -32,9 +32,8 @@ char **parserCiudades(const char *fileName)
             j++;
         }
         strcpy(*arrayCiudades+i, temp);
-        arrayCiudades = (char**)realloc(arrayCiudades, (sizeof(char*) * i + 1));
-        arrayCiudades[i] = (char *)calloc(100,sizeof(char));
-
+        arrayCiudades = (char**)realloc(arrayCiudades, ((sizeof(char*) * i + sizeof(char*))));
+        arrayCiudades[i] = (char *)calloc(80,sizeof(char));
         i++;
         printf("%i %s\n", i,*arrayCiudades+i);
     }
