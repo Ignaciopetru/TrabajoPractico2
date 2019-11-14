@@ -1,3 +1,28 @@
-1,HOSPITAL
-2,ZAPOTE
-3,SAN FRANCISCO DE DOS RIOS
+typedef struct{
+    char ** personas;
+    long cantGente;
+}infoPersonas;
+
+char infoPersonas(const char *fileName){
+    // Se relalliza un algoritmo parecido a la funcion anterior, pensamos en hacer una sola que cambie en la forma de parsear.
+    // Pero decidimos hacer dos separadas para no aunmentar la complejidad del codigo.
+    char **arrainfoPersonas = NULL;
+    FILE *fp;
+    fp = fopen(fileName, "r");
+    char buff[80];
+    int linea = 0
+    // Ciclo que recorre todas las lineas del archivo.
+    while(fgets(buff, 80, fp)) {
+        arrayPersonas = (char**)realloc(arrayPersonas, (linea+1)*sizeof(char*));
+        char* temp = (char *)calloc(80,sizeof(char));
+        // Copiamos en temp, el contenido de buff sin parsear. Ya que decidimos que es mas eficiente realizar ese proceso solo con las personas,
+        // seleccionadas de forma random.
+        strcpy(temp, buff);
+        arrayPersonas[linea]= temp;
+        linea++;
+    }
+    fclose(fp);
+    infoPersonas.personas = arrainfoPersonas;
+    infoPersonas.cantGente = linea;
+    return arrayPersonas;
+}
