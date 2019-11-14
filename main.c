@@ -4,7 +4,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-// Structura que almacena datos utilez para poder acceder a ellos de forma mas organizada.
+// Estructura que almacena datos utilez para poder acceder a ellos de forma mas organizada.
 typedef struct{
     // Array que contiene todas la ciudades en orden, teniendo en cuenta su codigo postal.
     char ** arrayCiudades;
@@ -13,6 +13,12 @@ typedef struct{
     // Array que contiene la relacion de indice y gustos de genero.
     char arrayGustos[4];
 }accesoDatos;
+
+// Estructura utilizada para retornar mas valores de la funcion parserPersonas.
+typedef struct{
+    char ** personas;
+    long cantGente;
+}infoPersonas;
 
 // Funcion que se dedica a leer el archivo que contiene las ciudades y genera la anteriormente mencionada arrayCiudades.
 char **parserCiudades(const char *fileName){
@@ -50,24 +56,29 @@ char **parserCiudades(const char *fileName){
 }
 
 // Funcion que se encarga de cargar el archivo que contiene las personas a una array, de arrays que contienen cada linea.
-char **parserPersonas(const char *fileName){
+infoPersonas* parserPersonas(const char *fileName){
     // Se relalliza un algoritmo parecido a la funcion anterior, pensamos en hacer una sola que cambie en la forma de parsear.
     // Pero decidimos hacer dos separadas para no aunmentar la complejidad del codigo.
+    infoPersonas *listaPersonas = (infoPersonas*)calloc(1,sizeof(infoPersonas));
     char **arrayPersonas = NULL;
     FILE *fp;
     fp = fopen(fileName, "r");
     char buff[80];
+    int linea = 0;
     // Ciclo que recorre todas las lineas del archivo.
-    for(int linea = 0; fgets(buff, 80, fp); linea++) {
+    while(fgets(buff, 80, fp)) {
         arrayPersonas = (char**)realloc(arrayPersonas, (linea+1)*sizeof(char*));
         char* temp = (char *)calloc(80,sizeof(char));
         // Copiamos en temp, el contenido de buff sin parsear. Ya que decidimos que es mas eficiente realizar ese proceso solo con las personas,
         // seleccionadas de forma random.
         strcpy(temp, buff);
         arrayPersonas[linea]= temp;
+        linea++;
     }
     fclose(fp);
-    return arrayPersonas;
+    listaPersonas->personas = arrayPersonas;
+    listaPersonas->cantGente = linea;
+    return listaPersonas;
 }
 
 // Funcion semi-auxiliar, que realiza un intercambio del contenido de dos variables.
@@ -84,7 +95,7 @@ void swap(long * a, long * b){
 long * calcRand(long cantGente){
     // Introduciomos la generacion de numeros aleatorios.
     srand(time(NULL));
-    // Se reserva memoria para la variable resultado que sera una array de longs.
+    // Se reserva arrayPersonasmemoria para la variable resultado que sera una array de longs.
     long * resultado = (long *)calloc(cantGente, sizeof(long));
     // Se rellena una array de largo de la cantidad de gente pedidad de forma acendiente.
     for(long i = 0; i < cantGente; i++){
@@ -101,7 +112,13 @@ long * calcRand(long cantGente){
     return resultado;
 }
 
+void escritorDeArchivo(long cantGenteP ,infoPersonas * listaPersonas){
+    long * listRand = calcRand(listaPersonas->cantGente);
 
+    for(long i=0; i < cantGenteP; i++){
+        printf("%s", listaPersonas->personas[listRand[i]]);
+    }
+}
 
 int main(){
 
@@ -110,15 +127,13 @@ int main(){
     strcpy(datos.arrayGenero, "MF");
     strcpy(datos.arrayGustos, "FMAN");
 
-    char ** arrayPersonas = parserPersonas("personas.txt");
+    infoPersonas * listaPersonas = parserPersonas("personas.txt");
+
+
     long cantGenteP;
 
     printf("%s", "Puto ingresa la cantidad de gente: ");
     scanf("%ld", &cantGenteP);
+    escritorDeArchivo(cantGenteP, listaPersonas);
 
-    long * listRand= calcRand(99999/*cantGente*/);
-
-    for(long i=0; i < cantGenteP; i++){
-        printf("%s", arrayPersonas[listRand[i]]);
-    }
 }
