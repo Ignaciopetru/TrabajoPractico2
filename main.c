@@ -112,12 +112,50 @@ long * calcRand(long cantGente){
     return resultado;
 }
 
-void escritorDeArchivo(long cantGenteP ,infoPersonas * listaPersonas){
-    long * listRand = calcRand(listaPersonas->cantGente);
 
+
+
+void escritorDeArchivo(long cantGenteP ,infoPersonas * listaPersonas, const char * fileName, accesoDatos * datos){
+
+    FILE *fp;
+    // Abrimios un archivo en modo escritura, sino existe se creara.
+    fp = fopen(fileName, "w");
+    // Calculamos de forma aleatoria las personas.
+    long * listRand = calcRand(listaPersonas->cantGente);
+    // Recorremos la lista de indeces de personas aleatorias, mientras seran escritas en el archivo.
     for(long i=0; i < cantGenteP; i++){
-        printf("%s", listaPersonas->personas[listRand[i]]);
+        int cantComas = 0, indiceCodPostal = 0, banderaCodigo = 0;
+        char * codigoPostal;
+        codigoPostal = (char *)calloc(1, sizeof(char));
+
+        for(int j=0; listaPersonas->personas[listRand[i]][j] != '\n'; j++){
+            if(listaPersonas->personas[listRand[i]][j] == ',') cantComas ++;
+            if(cantComas < 2 || (cantComas == 3 && banderaCodigo != 0)){
+                fputc(listaPersonas->personas[listRand[i]][j], fp);
+            }
+            if(cantComas == 2){
+                codigoPostal = (char*)realloc(codigoPostal, (indiceCodPostal+1)*sizeof(char));
+                codigoPostal[indiceCodPostal] = listaPersonas->personas[listRand[i]][j+1];
+                indiceCodPostal++;
+            }
+
+            if(cantComas == 3 && banderaCodigo == 0){
+                codigoPostal[indiceCodPostal-1] = '\0';
+                fputc(',', fp);
+                char * ptr;
+                long codigo = strtol(codigoPostal, &ptr, 10);
+                fputs(datos->arrayCiudades[codigo], fp);
+                banderaCodigo = 1;
+                fputc(',', fp);
+            }
+
+
+        }
+        fputc('\n', fp);
+      // printf("%s", listaPersonas->personas[listRand[i]]);
     }
+
+    fclose(fp);
 }
 
 int main(){
@@ -134,6 +172,9 @@ int main(){
 
     printf("%s", "Puto ingresa la cantidad de gente: ");
     scanf("%ld", &cantGenteP);
-    escritorDeArchivo(cantGenteP, listaPersonas);
+    escritorDeArchivo(cantGenteP, listaPersonas, "salida.txt", &datos);
+    char * ptr;
+    int p = strtol("1682", ptr, 10);
+    printf("%d", p);
 
 }
