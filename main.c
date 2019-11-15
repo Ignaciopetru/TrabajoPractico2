@@ -63,8 +63,8 @@ char **parserCiudades(const char *fileName)
 // Funcion que se encarga de cargar el archivo que contiene las personas a una array, de arrays que contienen cada linea.
 infoPersonas *parserPersonas(const char *fileName)
 {
-    // Se relalliza un algoritmo parecido a la funcion anterior, pensamos en hacer una sola que cambie en la forma de parsear.
-    // Pero decidimos hacer dos separadas para no aunmentar la complejidad del codigo.
+    // Se realliza un algoritmo parecido a la funcion anterior, pensamos en hacer una sola que cambie en la forma de parsear.
+    // Pero decidimos hacer dos separadas para no aumentar la complejidad del codigo.
     infoPersonas *listaPersonas = (infoPersonas *)calloc(1, sizeof(infoPersonas));
     char **arrayPersonas = NULL;
     FILE *fp;
@@ -76,19 +76,20 @@ infoPersonas *parserPersonas(const char *fileName)
     {
         arrayPersonas = (char **)realloc(arrayPersonas, (linea + 1) * sizeof(char *));
         char *temp = (char *)calloc(80, sizeof(char));
-        // Copiamos en temp, el contenido de buff sin parsear. Ya que decidimos que es mas eficiente realizar ese proceso solo con las personas,
-        // seleccionadas de forma random.
+        // Copiamos en temp, el contenido de buff sin parsear. Ya que decidimos que es mas eficiente realizar
+        // ese proceso solo con las personas seleccionadas de forma random.
         strcpy(temp, buff);
         arrayPersonas[linea] = temp;
         linea++;
     }
     fclose(fp);
+    // Asignamos los valores a la estructura y la retornamos
     listaPersonas->personas = arrayPersonas;
     listaPersonas->cantGente = linea;
     return listaPersonas;
 }
 
-// Funcion semi-auxiliar, que realiza un intercambio del contenido de dos variables.
+// Funcion auxiliar, que realiza un intercambio del contenido de dos variables.
 void swap(long *a, long *b)
 {
     // Utilizamos variables en modo long ya que esta funcion es utilizada en otra funcion que obtiene de manera aleatoria los indices de las personas
@@ -99,7 +100,9 @@ void swap(long *a, long *b)
     *b = c;
 }
 
-// Funcion que devulve una array de numeros unicos, generados de manera random, para poder elgir de manera aleatoria las personas a conformar el archivo final.
+// Funcion que devulve una array de numeros unicos, generados de manera random,
+// para poder elegir de manera aleatoria las personas a conformar el archivo final.
+// Genera numeros randoms por encima del necesario
 long *calcRand(long cantGente)
 {
     // Introduciomos la generacion de numeros aleatorios.
@@ -122,10 +125,33 @@ long *calcRand(long cantGente)
     }
     return resultado;
 }
-
+// Modifica los valores necesarios de las personas y los escribe en el archivo de salida
+void escrituraSalida(char **partes, FILE *fp, accesoDatos *datos)
+{
+    // Lógica de modificacion de datos de las personas
+    char *ptr;
+    long index = strtol(partes[2], &ptr, 10);
+    partes[2] = datos->arrayCiudades[--index];
+    index = partes[4][0] - '0';
+    partes[4][0] = datos->arrayGenero[--index];
+    index = partes[5][0] - '0';
+    partes[5][0] = datos->arrayGustos[--index];
+    // Escritura al archivo de salida
+    fputs(partes[0], fp);
+    for (int indice = 1; indice < 4; indice++)
+    {
+        fputc(',', fp);
+        fputs(partes[indice], fp);
+    }
+    for (int indice = 4; indice < 6; indice++)
+    {
+        fputc(',', fp);
+        fputc(partes[indice][0], fp);
+    }
+    fputc('\n', fp);
+}
 void escritorDeArchivo(long cantGenteP, infoPersonas *listaPersonas, const char *fileName, accesoDatos *datos)
 {
-
     FILE *fp;
     // Abrimios un archivo en modo escritura, sino existe se creara.
     fp = fopen(fileName, "w");
@@ -134,125 +160,41 @@ void escritorDeArchivo(long cantGenteP, infoPersonas *listaPersonas, const char 
     // Recorremos la lista de indeces de personas aleatorias, mientras seran escritas en el archivo.
     for (long i = 0; i < cantGenteP; i++)
     {
+        // Asigno memoria para el array que va a contener cada dato de la persona
         char **partes;
         partes = (char **)calloc(6, sizeof(char *));
         char *parte;
+        // Mediante strtok separamos la entrada mediante las comas
         parte = strtok(listaPersonas->personas[listRand[i]], ",");
         for (int indice = 0; parte != NULL; indice++)
         {
             partes[indice] = parte;
             parte = strtok(NULL, ",");
         }
-        fputs(partes[0], fp);
-        fputc(',', fp);
-        fputs(partes[1], fp);
-        fputc(',', fp);
-        char *ptr;
-        long index = strtol(partes[2], &ptr, 10);
-        fputs(datos->arrayCiudades[--index], fp);
-        fputc(',', fp);
-        fputs(partes[3], fp);
-        fputc(',', fp);
-        index = partes[4][0] - '0';
-        fputc(datos->arrayGenero[--index], fp);
-        fputc(',', fp);
-        index = partes[5][0] - '0';
-        fputc(datos->arrayGustos[--index], fp);
-        fputc('\n', fp);
+        // Aplicamos la logica correspondiente a cada parte de la entrada
+        // y escribimos el resultado en el archivo de salida "salida.txt"
+        escrituraSalida(partes, fp, datos);
+        // Liberamos la memoria
+        free(partes);
     }
+    // Cerramos el archivo de salida
     fclose(fp);
 }
 
-/* //? FORMA COMPLETA SIN SIMPLIFICARCORRECTA
-void escritorDeArchivo(long cantGenteP, infoPersonas *listaPersonas, const char *fileName, accesoDatos *datos)
-{
-
-    FILE *fp;
-    // Abrimios un archivo en modo escritura, sino existe se creara.
-    fp = fopen(fileName, "w");
-    // Calculamos de forma aleatoria las personas.
-    long *listRand = calcRand(listaPersonas->cantGente);
-    // Recorremos la lista de indeces de personas aleatorias, mientras seran escritas en el archivo.
-    for (long i = 0; i < cantGenteP; i++)
-    {
-        int cantComas = 0, indiceCodPostal = 0, banderaCodigo = 0;
-        char *codigoPostal;
-        codigoPostal = (char *)calloc(1, sizeof(char));
-
-        for (int j = 0; listaPersonas->personas[listRand[i]][j] != '\n'; j++)
-        {
-            if (listaPersonas->personas[listRand[i]][j] == ',')
-                cantComas++;
-            if (cantComas < 2 || (cantComas == 3 && banderaCodigo != 0))
-            {
-                fputc(listaPersonas->personas[listRand[i]][j], fp);
-            }
-            if (cantComas == 2)
-            {
-                codigoPostal = (char *)realloc(codigoPostal, (indiceCodPostal + 1) * sizeof(char));
-                codigoPostal[indiceCodPostal] = listaPersonas->personas[listRand[i]][j + 1];
-                indiceCodPostal++;
-            }
-
-            if (cantComas == 3 && banderaCodigo == 0)
-            {
-                codigoPostal[indiceCodPostal - 1] = '\0';
-                fputc(',', fp);
-                char *ptr;
-                long codigo = strtol(codigoPostal, &ptr, 10);
-                codigo -= 1;
-                fputs(datos->arrayCiudades[codigo], fp);
-                banderaCodigo = 1;
-                fputc(',', fp);
-            }
-            if (cantComas == 4)
-            {
-                if (listaPersonas->personas[listRand[i]][j] == ',')
-                {
-                    fputc(',', fp);
-                }
-                else
-                {
-                    int index = listaPersonas->personas[listRand[i]][j] - '0';
-                    index -= 1;
-                    fputc(datos->arrayGenero[index], fp);
-                }
-            }
-            if (cantComas == 5)
-            {
-                if (listaPersonas->personas[listRand[i]][j] == ',')
-                {
-                    fputc(',', fp);
-                }
-                else
-                {
-                    int index = listaPersonas->personas[listRand[i]][j] - '0';
-                    index -= 1;
-                    fputc(datos->arrayGustos[index], fp);
-                }
-            }
-        }
-        fputc('\n', fp);
-        // printf("%s", listaPersonas->personas[listRand[i]]);
-    }
-
-    fclose(fp);
-}*/
-
 int main()
 {
-
+    // Creamos la estructura de datos a modificar de las peronas (localidad, genero y genero de interes)
     accesoDatos datos;
     datos.arrayCiudades = parserCiudades("codigoLocalidades.txt");
     strcpy(datos.arrayGenero, "MF");
     strcpy(datos.arrayGustos, "FMAN");
-
+    // Creamos la estructura con las personas y su cantidad
     infoPersonas *listaPersonas = parserPersonas("personas.txt");
-
+    // Ingreso por teclado de la cantidad de personas a seleccionar para modificar y escribir como salida
     long cantGenteP;
-
     printf("%s", "Ingresa la cantidad de personas a parsear: ");
     scanf("%ld", &cantGenteP);
+    // Llamamos a la funcion que se encarga de procesar las personas y escribirlas en el archivo de salida
     escritorDeArchivo(cantGenteP, listaPersonas, "salida.txt", &datos);
     return 0;
 }
