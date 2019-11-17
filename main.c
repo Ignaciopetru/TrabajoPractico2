@@ -18,7 +18,9 @@ typedef struct
 // Estructura utilizada para retornar mas valores de la funcion parserPersonas.
 typedef struct
 {
+    // Array de array de chars, donde cada array de chars contiene la informacion de una persona.
     char **personas;
+    // Largo de la array anterior que es equivalente a la cantidad de gente en los registros.
     long cantGente;
 } infoPersonas;
 
@@ -102,7 +104,8 @@ void swap(long *a, long *b)
 
 // Funcion que devulve una array de numeros unicos, generados de manera random,
 // para poder elegir de manera aleatoria las personas a conformar el archivo final.
-// Genera numeros randoms por encima del necesario
+// Genera numeros randoms por encima del necesario. Pero dado que la funcion rand, tiene un limite en cada computadora, decidimos utilizar esta
+// funcion para ahorrar problemas.
 long *calcRand(long cantGente)
 {
     // Introduciomos la generacion de numeros aleatorios.
@@ -126,6 +129,8 @@ long *calcRand(long cantGente)
     return resultado;
 }
 // Modifica los valores necesarios de las personas y los escribe en el archivo de salida
+// En vez de parsear la informacion de todas las personas, decidimos solo realizar este proceso con las personas seleccionadas
+// para escribirse en el archivo, de esta forma en el peor de los casos se relaiza el parseo a todas las personas.
 void escrituraSalida(char **partes, FILE *fp, accesoDatos *datos)
 {
     // Lógica de modificacion de datos de las personas
@@ -150,35 +155,41 @@ void escrituraSalida(char **partes, FILE *fp, accesoDatos *datos)
     }
     fputc('\n', fp);
 }
+
+// Funcoin que se encarga de escribir el archivo salida.
 void escritorDeArchivo(long cantGenteP, infoPersonas *listaPersonas, const char *fileName, accesoDatos *datos)
 {
-    FILE *fp;
-    // Abrimios un archivo en modo escritura, sino existe se creara.
-    fp = fopen(fileName, "w");
-    // Calculamos de forma aleatoria las personas.
-    long *listRand = calcRand(listaPersonas->cantGente);
-    // Recorremos la lista de indeces de personas aleatorias, mientras seran escritas en el archivo.
-    for (long i = 0; i < cantGenteP; i++)
-    {
-        // Asigno memoria para el array que va a contener cada dato de la persona
-        char **partes;
-        partes = (char **)calloc(6, sizeof(char *));
-        char *parte;
-        // Mediante strtok separamos la entrada mediante las comas
-        parte = strtok(listaPersonas->personas[listRand[i]], ",");
-        for (int indice = 0; parte != NULL; indice++)
+    if(cantGenteP > listaPersonas->cantGente)
+        printf("%s", "La cantidad de gente pedida exede la cantidad registrada, no se puede ejecutar.");
+    else{
+        FILE *fp;
+        // Abrimios un archivo en modo escritura, sino existe se creara.
+        fp = fopen(fileName, "w");
+        // Calculamos de forma aleatoria las personas.
+        long *listRand = calcRand(listaPersonas->cantGente);
+        // Recorremos la lista de indeces de personas aleatorias, mientras seran escritas en el archivo.
+        for (long i = 0; i < cantGenteP; i++)
         {
-            partes[indice] = parte;
-            parte = strtok(NULL, ",");
+            // Asigno memoria para el array que va a contener cada dato de la persona
+            char **partes;
+            partes = (char **)calloc(6, sizeof(char *));
+            char *parte;
+            // Mediante strtok separamos la entrada mediante las comas
+            parte = strtok(listaPersonas->personas[listRand[i]], ",");
+            for (int indice = 0; parte != NULL; indice++)
+            {
+                partes[indice] = parte;
+                parte = strtok(NULL, ",");
+            }
+            // Aplicamos la logica correspondiente a cada parte de la entrada
+            // y escribimos el resultado en el archivo de salida "salida.txt"
+            escrituraSalida(partes, fp, datos);
+            // Liberamos la memoria
+            free(partes);
         }
-        // Aplicamos la logica correspondiente a cada parte de la entrada
-        // y escribimos el resultado en el archivo de salida "salida.txt"
-        escrituraSalida(partes, fp, datos);
-        // Liberamos la memoria
-        free(partes);
+        // Cerramos el archivo de salida
+        fclose(fp);
     }
-    // Cerramos el archivo de salida
-    fclose(fp);
 }
 
 int main()
